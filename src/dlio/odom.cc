@@ -82,10 +82,10 @@ dlio::OdomNode::OdomNode() : Node("dlio_odom_node") {
   this->first_imu_stamp = 0.;
   this->prev_imu_stamp = 0.;
 
-  this->original_scan = std::make_shared<const pcl::PointCloud<PointType>>();
-  this->deskewed_scan = std::make_shared<const pcl::PointCloud<PointType>>();
-  this->current_scan = std::make_shared<const pcl::PointCloud<PointType>>();
-  this->submap_cloud = std::make_shared<const pcl::PointCloud<PointType>>();
+  this->original_scan =  boost::make_shared<pcl::PointCloud<PointType>>();
+  this->deskewed_scan =  boost::make_shared<pcl::PointCloud<PointType>>();
+  this->current_scan =  boost::make_shared<pcl::PointCloud<PointType>>();
+  this->submap_cloud =  boost::make_shared<pcl::PointCloud<PointType>>();
 
   this->num_processed_keyframes = 0;
 
@@ -441,7 +441,7 @@ void dlio::OdomNode::publishCloud(pcl::PointCloud<PointType>::ConstPtr published
     if (this->length_traversed < 0.1) { return; }
   }
 
-  pcl::PointCloud<PointType>::Ptr deskewed_scan_t_ = std::make_shared<pcl::PointCloud<PointType>>();
+  std::shared_ptr<pcl::PointCloud<PointType>> deskewed_scan_t_ = std::make_shared<pcl::PointCloud<PointType>>();
 
   pcl::transformPointCloud (*published_cloud, *deskewed_scan_t_, T_cloud);
 
@@ -493,7 +493,7 @@ void dlio::OdomNode::publishKeyframe(std::pair<std::pair<Eigen::Vector3f, Eigen:
 
 void dlio::OdomNode::getScanFromROS(const sensor_msgs::msg::PointCloud2::SharedPtr& pc) {
 
-  pcl::PointCloud<PointType>::Ptr original_scan_ = std::make_shared<pcl::PointCloud<PointType>>();
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> original_scan_ =  boost::make_shared<pcl::PointCloud<PointType>>();
   pcl::fromROSMsg(*pc, *original_scan_);
 
   // Remove NaNs
@@ -572,7 +572,7 @@ void dlio::OdomNode::preprocessPoints() {
 
     }
 
-    pcl::PointCloud<PointType>::Ptr deskewed_scan_ = std::make_shared<pcl::PointCloud<PointType>>();
+    pcl::PointCloud<PointType>::Ptr deskewed_scan_ = boost::make_shared<pcl::PointCloud<PointType>>();
     pcl::transformPointCloud (*this->original_scan, *deskewed_scan_,
                               this->T_prior * this->extrinsics.baselink2lidar_T);
     this->deskewed_scan = deskewed_scan_;
@@ -581,7 +581,7 @@ void dlio::OdomNode::preprocessPoints() {
 
   // Voxel Grid Filter
   if (this->vf_use_) {
-    pcl::PointCloud<PointType>::Ptr current_scan_ = std::make_shared<pcl::PointCloud<PointType>>(*this->deskewed_scan);
+    pcl::PointCloud<PointType>::Ptr current_scan_ = boost::make_shared<pcl::PointCloud<PointType>>(*this->deskewed_scan);
     this->voxel.setInputCloud(current_scan_);
     this->voxel.filter(*current_scan_);
     this->current_scan = current_scan_;
@@ -593,7 +593,7 @@ void dlio::OdomNode::preprocessPoints() {
 
 void dlio::OdomNode::deskewPointcloud() {
 
-  pcl::PointCloud<PointType>::Ptr deskewed_scan_ = std::make_shared<pcl::PointCloud<PointType>>(1, this->original_scan->points.size());
+  pcl::PointCloud<PointType>::Ptr deskewed_scan_ = boost::make_shared<pcl::PointCloud<PointType>>(1, this->original_scan->points.size());
   // deskewed_scan_->points.resize(this->original_scan->points.size());
   // individual point timestamps should be relative to this time
   double sweep_ref_time = rclcpp::Time(this->scan_header_stamp).seconds();
@@ -1022,7 +1022,7 @@ void dlio::OdomNode::getNextPose() {
   }
 
   // Align with current submap with global IMU transformation as initial guess
-  pcl::PointCloud<PointType>::Ptr aligned = std::make_shared<pcl::PointCloud<PointType>>();
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> aligned = boost::make_shared<pcl::PointCloud<PointType>>();
   this->gicp.align(*aligned);
 
   // Get final transformation in global frame
@@ -1466,7 +1466,7 @@ void dlio::OdomNode::computeConvexHull() {
   }
 
   // create a pointcloud with points at keyframes
-  pcl::PointCloud<PointType>::Ptr cloud = std::make_shared<pcl::PointCloud<PointType>>();
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> cloud = boost::make_shared<pcl::PointCloud<PointType>>();
 
   std::unique_lock<decltype(this->keyframes_mutex)> lock(this->keyframes_mutex);
   for (int i = 0; i < this->num_processed_keyframes; i++) {
@@ -1482,10 +1482,10 @@ void dlio::OdomNode::computeConvexHull() {
   this->convex_hull.setInputCloud(cloud);
 
   // get the indices of the keyframes on the convex hull
-  pcl::PointCloud<PointType>::Ptr convex_points = std::make_shared<pcl::PointCloud<PointType>>();
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> convex_points = boost::make_shared<pcl::PointCloud<PointType>>();
   this->convex_hull.reconstruct(*convex_points);
 
-  pcl::PointIndices::Ptr convex_hull_point_idx = std::make_shared<pcl::PointIndices>();
+  boost::shared_ptr<pcl::PointIndices> convex_hull_point_idx = boost::make_shared<pcl::PointIndices>();
   this->convex_hull.getHullPointIndices(*convex_hull_point_idx);
 
   this->keyframe_convex.clear();
@@ -1503,7 +1503,7 @@ void dlio::OdomNode::computeConcaveHull() {
   }
 
   // create a pointcloud with points at keyframes
-  auto cloud = std::make_shared<pcl::PointCloud<PointType>>();
+  auto cloud = boost::make_shared<pcl::PointCloud<PointType>>();
 
   std::unique_lock<decltype(this->keyframes_mutex)> lock(this->keyframes_mutex);
   for (int i = 0; i < this->num_processed_keyframes; i++) {
@@ -1519,10 +1519,10 @@ void dlio::OdomNode::computeConcaveHull() {
   this->concave_hull.setInputCloud(cloud);
 
   // get the indices of the keyframes on the concave hull
-  pcl::PointCloud<PointType>::Ptr concave_points = std::make_shared<pcl::PointCloud<PointType>>();
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> concave_points = boost::make_shared<pcl::PointCloud<PointType>>();
   this->concave_hull.reconstruct(*concave_points);
 
-  pcl::PointIndices::Ptr concave_hull_point_idx = std::make_shared<pcl::PointIndices>();
+  boost::shared_ptr<pcl::PointIndices> concave_hull_point_idx = boost::make_shared<pcl::PointIndices>();
   this->concave_hull.getHullPointIndices(*concave_hull_point_idx);
 
   this->keyframe_concave.clear();
@@ -1731,7 +1731,7 @@ void dlio::OdomNode::buildSubmap(State vehicle_state) {
     this->pauseSubmapBuildIfNeeded();
 
     // reinitialize submap cloud and normals
-    pcl::PointCloud<PointType>::Ptr submap_cloud_ = std::make_shared<pcl::PointCloud<PointType>>();
+    boost::shared_ptr<pcl::PointCloud<dlio::Point>> submap_cloud_ = boost::make_shared<pcl::PointCloud<PointType>>();
     std::shared_ptr<nano_gicp::CovarianceList> submap_normals_ (std::make_shared<nano_gicp::CovarianceList>());
 
     for (auto k : this->submap_kf_idx_curr) {
@@ -1772,7 +1772,7 @@ void dlio::OdomNode::buildKeyframesAndSubmap(State vehicle_state) {
 
     Eigen::Matrix4d Td = T.cast<double>();
 
-    pcl::PointCloud<PointType>::Ptr transformed_keyframe = std::make_shared<pcl::PointCloud<PointType>>();
+    boost::shared_ptr<pcl::PointCloud<dlio::Point>> transformed_keyframe = boost::make_shared<pcl::PointCloud<PointType>>();
     pcl::transformPointCloud (*raw_keyframe, *transformed_keyframe, T);
 
     std::shared_ptr<nano_gicp::CovarianceList> transformed_covariances (std::make_shared<nano_gicp::CovarianceList>(raw_covariances->size()));

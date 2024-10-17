@@ -174,9 +174,9 @@ private:
   pcl::VoxelGrid<PointType> voxel;
 
   // Point Clouds
-  pcl::PointCloud<PointType>::ConstPtr original_scan;
-  pcl::PointCloud<PointType>::ConstPtr deskewed_scan;
-  pcl::PointCloud<PointType>::ConstPtr current_scan;
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> original_scan;
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> deskewed_scan;
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>> current_scan;
 
   // Keyframes
   pcl::PointCloud<PointType>::ConstPtr keyframe_cloud;
@@ -188,7 +188,7 @@ private:
   std::vector<int> keyframe_concave;
 
   // Submap
-  pcl::PointCloud<PointType>::ConstPtr submap_cloud;
+  boost::shared_ptr<pcl::PointCloud<dlio::Point>>  submap_cloud;
   std::shared_ptr<const nano_gicp::CovarianceList> submap_normals;
   std::shared_ptr<const nanoflann::KdTreeFLANN<PointType>> submap_kdtree;
 

@@ -35,9 +35,9 @@ private:
 
   void getParams();
 
-  void callbackKeyframe(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& keyframe);
+  void callbackKeyframe(sensor_msgs::msg::PointCloud2::ConstSharedPtr keyframe);
 
-  void savePCD(std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Request> req,
+  bool savePCD(std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Request> req,
                std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Response> res);
 
 
