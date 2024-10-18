@@ -1,0 +1,11 @@
+procs:
+  rosbag:
+    shell: 'bash -c "source /opt/ros/foxy/setup.bash && ros2 bag play /media/marco/X9\ Pro/LuxDSD/Rosbag/AutoSenseBag2_2024_10_14-16_03_55"'
+    autostart: false
+    stop: SIGINT
+  direct_lidar_inertial_odometry:
+    shell: 'bash -c "source ~/workspaces/lightweight_lio_ws/install/setup.bash && ros2 launch direct_lidar_inertial_odometry dlio.launch.py rviz:=true pointcloud_topic:=/ouster/points imu_topic:=/ouster/imu"'
+    autostart: true
+  rviz:
+    shell: 'bash -c "source ~/workspaces/ros2_ws/install/setup.bash && rviz2 -d ~/workspaces/ros2_ws/src/s_graphs/lidar_situational_graphs/rviz/s_graphs_ros2.rviz"'
+    autostart: false
