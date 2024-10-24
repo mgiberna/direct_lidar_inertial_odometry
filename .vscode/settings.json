@@ -1,0 +1,12 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/marco/workspaces/lightweight_lio_ws/install/direct_lidar_inertial_odometry/lib/python3.8/site-packages",
+        "/opt/ros/foxy/lib/python3.8/site-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/marco/workspaces/lightweight_lio_ws/install/direct_lidar_inertial_odometry/lib/python3.8/site-packages",
+        "/opt/ros/foxy/lib/python3.8/site-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ]
+}
